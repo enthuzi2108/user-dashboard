@@ -22,7 +22,8 @@
     <span>User added successfully!</span>
   </div>
 
-  <div class="dashboard-content" [@fadeIn]>
+  <!-- Dashboard Content - Only show when NOT loading -->
+  <div class="dashboard-content" [@fadeIn] *ngIf="!isLoading">
     <!-- Table Section -->
     <div class="table-section">
       <!-- Search Bar -->
@@ -37,15 +38,15 @@
 
       <!-- Table -->
       <div class="table-container">
-        <!-- Empty State -->
-        <div class="empty-state" *ngIf="!hasData()">
+        <!-- Empty State - Only show when NOT loading AND no data -->
+        <div class="empty-state" *ngIf="!isLoading && !hasData()">
           <mat-icon class="empty-icon">search_off</mat-icon>
           <h3>No users found</h3>
           <p>Try adjusting your search criteria or add a new user</p>
         </div>
 
-        <!-- Table - Always rendered but hidden when empty -->
-        <div [style.display]="hasData() ? 'block' : 'none'">
+        <!-- Table - Show when NOT loading AND has data -->
+        <div *ngIf="!isLoading && hasData()">
           <table mat-table [dataSource]="dataSource" matSort class="users-table">
             <!-- Name Column -->
             <ng-container matColumnDef="name">
@@ -75,13 +76,16 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
           </table>
-
-          <mat-paginator 
-            [pageSizeOptions]="[5, 10, 25]" 
-            showFirstLastButtons
-            class="custom-paginator">
-          </mat-paginator>
         </div>
+
+        <!-- Paginator - Always render when not loading to maintain connection -->
+        <mat-paginator 
+          *ngIf="!isLoading"
+          [pageSizeOptions]="[5, 10, 25]" 
+          [pageSize]="5"
+          showFirstLastButtons
+          class="custom-paginator">
+        </mat-paginator>
       </div>
     </div>
 

@@ -42,8 +42,8 @@ export class UserDashboardComponent implements OnInit, OnDestroy, AfterViewInit 
   isLoading = true;
   isAddingUser = false;
 
-  @ViewChild(MatPaginator) paginator?: MatPaginator;
-  @ViewChild(MatSort) sort?: MatSort;
+  @ViewChild(MatPaginator, { static: false }) paginator?: MatPaginator;
+  @ViewChild(MatSort, { static: false }) sort?: MatSort;
   @ViewChild('chartCanvas', { static: false }) chartCanvas?: ElementRef<HTMLCanvasElement>;
 
   constructor(
@@ -62,19 +62,29 @@ export class UserDashboardComponent implements OnInit, OnDestroy, AfterViewInit 
       setTimeout(() => {
         this.updateChart();
         this.isLoading = false;
+        // Reconnect paginator after data loads and view is ready
+        this.connectPaginatorAndSort();
       }, 100);
     });
   }
 
   ngAfterViewInit(): void {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
-    if (this.sort) {
-      this.dataSource.sort = this.sort;
-    }
+    // Connect paginator and sort if they're already available
+    this.connectPaginatorAndSort();
     // Initialize chart after view is ready
     setTimeout(() => this.initializeChart(), 200);
+  }
+
+  private connectPaginatorAndSort(): void {
+    // Use setTimeout to ensure view is fully rendered
+    setTimeout(() => {
+      if (this.paginator) {
+        this.dataSource.paginator = this.paginator;
+      }
+      if (this.sort) {
+        this.dataSource.sort = this.sort;
+      }
+    }, 0);
   }
 
   ngOnDestroy(): void {
