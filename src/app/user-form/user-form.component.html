@@ -1,0 +1,54 @@
+<h2 mat-dialog-title class="dialog-title">Add New User</h2>
+
+<mat-dialog-content class="dialog-content">
+  <form [formGroup]="userForm" class="user-form">
+    <!-- Name Field -->
+    <div class="form-field-wrapper">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" placeholder="Enter user name" required>
+        <mat-icon matSuffix>person</mat-icon>
+      </mat-form-field>
+      <div class="external-error" *ngIf="name?.invalid && name?.touched">
+        <small *ngIf="name?.hasError('required')">Name is required</small>
+        <small *ngIf="name?.hasError('minlength')">Name must be at least 2 characters</small>
+        <small *ngIf="name?.hasError('pattern')">Name can only contain letters and spaces</small>
+      </div>
+    </div>
+
+    <!-- Email Field -->
+    <div class="form-field-wrapper">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" placeholder="Enter email address" required>
+        <mat-icon matSuffix>email</mat-icon>
+      </mat-form-field>
+      <div class="external-error" *ngIf="email?.invalid && email?.touched">
+        <small *ngIf="email?.hasError('required')">Email is required</small>
+        <small *ngIf="email?.hasError('email')">Please enter a valid email</small>
+      </div>
+    </div>
+
+    <!-- Role Field -->
+    <div class="form-field-wrapper">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="role" required>
+          <mat-option *ngFor="let r of roles" [value]="r">{{r}}</mat-option>
+        </mat-select>
+        <mat-icon matSuffix>badge</mat-icon>
+      </mat-form-field>
+      <div class="external-error" *ngIf="role?.invalid && role?.touched">
+        <small *ngIf="role?.hasError('required')">Role is required</small>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button class="btn-cancel" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button class="btn-submit" (click)="onSubmit()" [disabled]="userForm.invalid">
+    <mat-icon>add</mat-icon>
+    Add User
+  </button>
+</mat-dialog-actions>
