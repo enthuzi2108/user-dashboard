@@ -582,36 +582,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
   text-align: center;
 }
 
-.legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-bottom: 4px;
+/* Legend Pills - Matching table role badges */
+.legend-pill {
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: white;
+  white-space: nowrap;
+  min-width: 90px;
 }
 
-.legend-admin {
+.legend-pill-admin {
   background-color: #1c4980;
 }
 
-.legend-editor {
+.legend-pill-editor {
   background-color: #383838;
 }
 
-.legend-viewer {
+.legend-pill-viewer {
   background-color: #718096;
-}
-
-.legend-label {
-  color: #383838;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
 }
 
 .legend-percentage {
