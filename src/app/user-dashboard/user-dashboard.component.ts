@@ -30,6 +30,11 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
       transition(':leave', [
         animate('300ms ease-in', style({ transform: 'translateY(-100%)', opacity: 0 }))
       ])
+    ]),
+    trigger('fadeOut', [
+      transition(':leave', [
+        animate('500ms ease-out', style({ opacity: 0 }))
+      ])
     ])
   ]
 })
@@ -41,6 +46,9 @@ export class UserDashboardComponent implements OnInit, OnDestroy, AfterViewInit 
   private chartInitialized = false;
   isLoading = true;
   isAddingUser = false;
+  showInitialLoader = true;
+  dataLoaded = false;
+  minLoadTimePassed = false;
 
   @ViewChild(MatPaginator, { static: false }) paginator?: MatPaginator;
   @ViewChild(MatSort, { static: false }) sort?: MatSort;
@@ -57,34 +65,66 @@ export class UserDashboardComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngOnInit(): void {
+    // Minimum 4 seconds loader - mandatory
+    setTimeout(() => {
+      this.minLoadTimePassed = true;
+      this.checkAndHideLoader();
+    }, 4000);
+
     this.usersSubscription = this.userService.users$.subscribe(users => {
       this.dataSource.data = users;
       setTimeout(() => {
-        this.updateChart();
         this.isLoading = false;
-        // Reconnect paginator after data loads and view is ready
-        this.connectPaginatorAndSort();
+        this.dataLoaded = true;
+        // Update chart if it exists
+        if (this.chart) {
+          this.updateChart();
+        }
+        // Check if we can hide initial loader
+        this.checkAndHideLoader();
       }, 100);
     });
   }
 
+  private checkAndHideLoader(): void {
+    // Hide loader only when BOTH conditions are met:
+    // 1. Minimum 4 seconds have passed
+    // 2. Data has been loaded from API
+    if (this.minLoadTimePassed && this.dataLoaded) {
+      // Fade out animation, then hide
+      setTimeout(() => {
+        this.showInitialLoader = false;
+        // Initialize paginator, sort, and chart after loader hides and view is ready
+        setTimeout(() => {
+          this.connectPaginatorAndSort();
+          this.initializeChart();
+          // Force chart update after initialization
+          if (this.chart) {
+            this.updateChart();
+          }
+        }, 200);
+      }, 500);
+    }
+  }
+
   ngAfterViewInit(): void {
-    // Connect paginator and sort if they're already available
-    this.connectPaginatorAndSort();
-    // Initialize chart after view is ready
-    setTimeout(() => this.initializeChart(), 200);
+    // Only initialize if loader is already hidden
+    if (!this.showInitialLoader) {
+      this.connectPaginatorAndSort();
+      setTimeout(() => this.initializeChart(), 200);
+    }
   }
 
   private connectPaginatorAndSort(): void {
     // Use setTimeout to ensure view is fully rendered
     setTimeout(() => {
-      if (this.paginator) {
+      if (this.paginator && !this.dataSource.paginator) {
         this.dataSource.paginator = this.paginator;
       }
-      if (this.sort) {
+      if (this.sort && !this.dataSource.sort) {
         this.dataSource.sort = this.sort;
       }
-    }, 0);
+    }, 100);
   }
 
   ngOnDestroy(): void {
@@ -152,9 +192,15 @@ export class UserDashboardComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   private initializeChart(): void {
-    if (this.chartCanvas && !this.chartInitialized) {
-      this.createChart();
-      this.chartInitialized = true;
+    if (this.chartCanvas && !this.chartInitialized && !this.showInitialLoader) {
+      setTimeout(() => {
+        if (this.chartCanvas && !this.chart) {
+          this.createChart();
+          this.chartInitialized = true;
+          // Update chart with current data after creation
+          this.updateChart();
+        }
+      }, 300);
     }
   }
 
@@ -217,15 +263,17 @@ export class UserDashboardComponent implements OnInit, OnDestroy, AfterViewInit 
 
   private updateChart(): void {
     if (!this.chart) {
-      if (this.chartCanvas && !this.chartInitialized) {
+      if (this.chartCanvas && !this.chartInitialized && !this.showInitialLoader) {
         this.initializeChart();
       }
       return;
     }
 
     const data = this.calculateRoleDistribution();
-    this.chart.data.datasets[0].data = [data.admin, data.editor, data.viewer];
-    this.chart.update('active');
+    if (this.chart.data && this.chart.data.datasets && this.chart.data.datasets[0]) {
+      this.chart.data.datasets[0].data = [data.admin, data.editor, data.viewer];
+      this.chart.update('active');
+    }
   }
 
   private calculateRoleDistribution(): { admin: number; editor: number; viewer: number } {
